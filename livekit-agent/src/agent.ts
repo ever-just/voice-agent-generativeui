@@ -101,7 +101,9 @@ ENRICHING VISUALS WITH IMAGES:
 
 RESPONSE STYLE:
 - Keep voice responses short and natural. Avoid reading long lists aloud — show them visually instead and summarise with a couple of sentences.
-- Default to using show_ui for anything with structure. If in doubt, visualize it.`;
+- Default to using show_ui for anything with structure. If in doubt, visualize it.
+
+Today's date: ${new Date().toDateString()}`;
 
 async function googleImageSearch(
   query: string,

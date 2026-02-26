@@ -5,7 +5,7 @@ import { SpinRing } from "./status-indicators";
 import styles from "./IdleScreen.module.css";
 
 interface IdleScreenProps {
-  onStart: () => void;
+  onStart: (prompt?: string) => void;
   startPending: boolean;
 }
 
@@ -40,7 +40,7 @@ export function IdleScreen({ onStart, startPending }: IdleScreenProps) {
 
       <button
         className={`${styles.startBtn} ${startPending ? styles.loading : ""}`}
-        onClick={startPending ? undefined : onStart}
+        onClick={startPending ? undefined : () => onStart()}
       >
         {startPending ? (
           <>
@@ -57,7 +57,7 @@ export function IdleScreen({ onStart, startPending }: IdleScreenProps) {
         <div className={styles.starters}>
           <span className={styles.startersLabel}>Try these</span>
           {STARTERS.map((s) => (
-            <button key={s} className={styles.starterBtn} onClick={onStart}>
+            <button key={s} className={styles.starterBtn} onClick={() => onStart(s)}>
               {s}
             </button>
           ))}

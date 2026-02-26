@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useSessionContext,
   useAgent,
@@ -49,17 +49,27 @@ export function VoiceUI() {
   // ── Connection lifecycle ──
 
   const [startPending, setStartPending] = useState(false);
+  const pendingPromptRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (session.isConnected) setStartPending(false);
   }, [session.isConnected]);
 
-  const handleStart = useCallback(() => {
+  useEffect(() => {
+    if (isAgentReady && pendingPromptRef.current) {
+      sendChatMessage(pendingPromptRef.current);
+      pendingPromptRef.current = null;
+    }
+  }, [isAgentReady, sendChatMessage]);
+
+  const handleStart = useCallback((prompt?: string) => {
+    pendingPromptRef.current = prompt ?? null;
     setStartPending(true);
     session.start();
   }, [session]);
 
   const handleEnd = useCallback(() => {
+    pendingPromptRef.current = null;
     session.end();
     setGenUIContent("");
     setStartPending(false);

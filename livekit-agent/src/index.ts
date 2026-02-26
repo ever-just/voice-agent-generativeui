@@ -26,7 +26,7 @@ export default defineAgent({
       vad,
       voiceOptions: {
         allowInterruptions: true,
-        preemptiveGeneration: true,
+        // preemptiveGeneration: true,
         maxToolSteps: 10,
         minInterruptionDuration: 0.5,
         useTtsAlignedTranscript: true,
