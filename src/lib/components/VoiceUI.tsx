@@ -182,13 +182,6 @@ export function VoiceUI() {
     <DarkModeContext.Provider value={{ dark, toggle: toggleTheme }}>
       <ThemeProvider mode={dark ? "dark" : "light"}>
         <div className={styles.root} style={themeStyle}>
-          {/* Blobs for idle screen */}
-          <div className={styles.blobs}>
-            <div className={styles.blob1} />
-            <div className={styles.blob2} />
-            <div className={styles.blob3} />
-          </div>
-
           {!session.isConnected ? (
             <IdleScreen
               onStart={handleStart}
