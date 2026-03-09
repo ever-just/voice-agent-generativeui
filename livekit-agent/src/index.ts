@@ -4,25 +4,31 @@ import {
   cli,
   defineAgent,
   inference,
-  metrics,
   voice,
 } from "@livekit/agents";
-import * as livekit from "@livekit/agents-plugin-livekit";
 import * as silero from "@livekit/agents-plugin-silero";
 import { fileURLToPath } from "node:url";
 import { createVoiceAgent } from "./agent.js";
+import * as openai from "@livekit/agents-plugin-openai";
 
 export default defineAgent({
   entry: async (ctx: JobContext) => {
     const vad = await silero.VAD.load();
     const session = new voice.AgentSession({
       stt: new inference.STT({ model: "deepgram/nova-3", language: "multi" }),
-      llm: new inference.LLM({ model: "google/gemini-3-flash" }),
+      // llm: new openai.LLM({
+      //   baseURL: "https://api.thesys.dev/v1",
+      //   apiKey: process.env.THESYS_API_KEY,
+      //   model: "google/gemini-3-flash",
+      // }),
+      llm: new inference.LLM({
+        model: "google/gemini-3-flash",
+      }),
       tts: new inference.TTS({
         model: "inworld/inworld-tts-1",
         voice: "Ashley",
       }),
-      turnDetection: new livekit.turnDetector.MultilingualModel(),
+      // turnDetection: new livekit.turnDetector.MultilingualModel(),
       vad,
       voiceOptions: {
         allowInterruptions: true,

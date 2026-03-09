@@ -1,37 +1,29 @@
-import { useState } from "react";
-import { useDarkMode, STARTERS } from "./theme";
-import { PlayIcon, SunIcon, MoonIcon } from "./icons";
+import { STARTERS, type AccentName } from "./theme";
+import { PlayIcon } from "./icons";
 import { SpinRing } from "./status-indicators";
+import { AccentPopover } from "./ControlTray";
 import styles from "./IdleScreen.module.css";
 
 interface IdleScreenProps {
   onStart: (prompt?: string) => void;
   startPending: boolean;
+  accentName: AccentName;
+  dark: boolean;
+  onToggleDark: () => void;
+  onAccentChange: (name: AccentName) => void;
 }
 
-export function IdleScreen({ onStart, startPending }: IdleScreenProps) {
-  const { dark, toggle } = useDarkMode();
-  const [themeAnim, setThemeAnim] = useState(false);
-
-  const handleThemeToggle = () => {
-    toggle();
-    setThemeAnim(true);
-    setTimeout(() => setThemeAnim(false), 520);
-  };
-
+export function IdleScreen({
+  onStart,
+  startPending,
+  accentName,
+  dark,
+  onToggleDark,
+  onAccentChange,
+}: IdleScreenProps) {
   return (
     <div className={styles.root}>
-      <button
-        className={styles.themeToggle}
-        onClick={handleThemeToggle}
-        title={dark ? "Light mode" : "Dark mode"}
-      >
-        <span className={themeAnim ? styles.themeFlip : undefined} style={{ display: "flex" }}>
-          {dark ? <SunIcon /> : <MoonIcon />}
-        </span>
-      </button>
-
-      <div className={styles.hero}>
+      <div className="flex flex-col items-center gap-2.5 mb-17">
         <h1 className={styles.title}>genie</h1>
         <p className={styles.subtitle}>
           Get Generative UI responses<br />for voice inputs
@@ -43,18 +35,14 @@ export function IdleScreen({ onStart, startPending }: IdleScreenProps) {
         onClick={startPending ? undefined : () => onStart()}
       >
         {startPending ? (
-          <>
-            <SpinRing size={18} /> Connecting
-          </>
+          <><SpinRing size={18} /> Connecting</>
         ) : (
-          <>
-            <PlayIcon /> Start
-          </>
+          <><PlayIcon /> Start</>
         )}
       </button>
 
       {!startPending && (
-        <div className={styles.starters}>
+        <div className="absolute bottom-13 flex flex-col items-center">
           <span className={styles.startersLabel}>Try these</span>
           {STARTERS.map((s) => (
             <button key={s} className={styles.starterBtn} onClick={() => onStart(s)}>
@@ -63,6 +51,13 @@ export function IdleScreen({ onStart, startPending }: IdleScreenProps) {
           ))}
         </div>
       )}
+
+      <AccentPopover
+        accentName={accentName}
+        dark={dark}
+        onToggleDark={onToggleDark}
+        onAccentChange={onAccentChange}
+      />
     </div>
   );
 }

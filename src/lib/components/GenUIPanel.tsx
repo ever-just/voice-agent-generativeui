@@ -19,8 +19,8 @@ export function GenUIPanel({
 }: GenUIPanelProps) {
   if (content && !isProcessingAction) {
     return (
-      <div className={styles.root}>
-        <div className={styles.content}>
+      <div className="flex-1 overflow-auto flex justify-center px-5 pt-5 pb-2">
+        <div className="w-full max-w-225">
           <C1Component
             c1Response={content}
             isStreaming={isStreaming}
@@ -33,8 +33,8 @@ export function GenUIPanel({
 
   if (isStreaming || isProcessingAction) {
     return (
-      <div className={styles.root}>
-        <div className={styles.content}>
+      <div className="flex-1 overflow-auto flex justify-center px-5 pt-5 pb-2">
+        <div className="w-full max-w-225">
           <Skeleton />
         </div>
       </div>
@@ -42,7 +42,7 @@ export function GenUIPanel({
   }
 
   return (
-    <div className={styles.root}>
+    <div className="flex-1 overflow-auto flex justify-center px-5 pt-5 pb-2">
       <div className={styles.emptyState}>
         {!isAgentReady ? (
           <ConnectingIndicator />
@@ -60,9 +60,9 @@ export function GenUIPanel({
 
 function Skeleton() {
   return (
-    <div className={styles.skeleton}>
+    <div className="flex flex-col gap-4 pt-2">
       <div className={styles.skelLine} style={{ width: "40%" }} />
-      <div className={styles.skelCards}>
+      <div className="flex gap-3.5">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
@@ -89,7 +89,7 @@ function ConnectingIndicator() {
   }, []);
 
   return (
-    <div className={styles.connecting}>
+    <div className="flex flex-col items-center gap-3">
       <span className={styles.connectingText}>Getting ready{dots}</span>
       <span className={styles.connectingSub}>
         Please wait until the agent is ready before speaking

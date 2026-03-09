@@ -70,9 +70,6 @@ export function TranscriptStrip() {
     .join(" ")
     .trim();
 
-  const userText = liveUserText || lastUserText;
-  const agentText = liveAgentText || lastAgentText;
-
   // Blinking cursor while agent is speaking
   const [cursorOn, setCursorOn] = useState(true);
   useEffect(() => {
@@ -81,33 +78,45 @@ export function TranscriptStrip() {
     return () => clearInterval(id);
   }, [agentState]);
 
-  if (!userText && !agentText) return null;
+  // Single-row priority:
+  //   - while agent is speaking: show live agent text
+  //   - while user is speaking (live user text present): show live user text
+  //   - otherwise fall back to last committed text (agent first, then user)
+  let activeText: string;
+  let activeLabel: "AI" | "You";
+  if (agentState === "speaking" && liveAgentText) {
+    activeText = liveAgentText;
+    activeLabel = "AI";
+  } else if (liveUserText) {
+    activeText = liveUserText;
+    activeLabel = "You";
+  } else if (lastAgentText) {
+    activeText = lastAgentText;
+    activeLabel = "AI";
+  } else {
+    activeText = lastUserText;
+    activeLabel = "You";
+  }
+
+  if (!activeText) return null;
 
   return (
     <div className={styles.root}>
-      {userText && (
-        <div className={styles.row}>
-          <span className={`${styles.label} ${styles.userLabel}`}>You</span>
-          <div className={styles.rowContent}>
-            <span className={styles.userText}>{userText}</span>
-          </div>
+      <div className={styles.row}>
+        <span className={`${styles.label} ${activeLabel === "AI" ? styles.agentLabel : styles.userLabel}`}>
+          {activeLabel}
+        </span>
+        <div className={styles.rowContent}>
+          <span className={activeLabel === "AI" ? styles.agentText : styles.userText}>
+            {activeText}
+            {activeLabel === "AI" && agentState === "speaking" && (
+              <span
+                className={`${styles.cursor} ${cursorOn ? "opacity-100" : "opacity-0"}`}
+              />
+            )}
+          </span>
         </div>
-      )}
-      {agentText && (
-        <div className={styles.row}>
-          <span className={`${styles.label} ${styles.agentLabel}`}>AI</span>
-          <div className={styles.rowContent}>
-            <span className={styles.agentText}>
-              {agentText}
-              {agentState === "speaking" && (
-                <span
-                  className={`${styles.cursor} ${cursorOn ? styles.cursorOn : styles.cursorOff}`}
-                />
-              )}
-            </span>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

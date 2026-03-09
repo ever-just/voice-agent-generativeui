@@ -1,7 +1,5 @@
-@media (max-width: 768px) {
-  .crayon-card {
-    padding: 0;
-    background: none;
-    border: none;
-  }
+.crayon-card {
+  padding: 0;
+  background: none;
+  border: none;
 }
