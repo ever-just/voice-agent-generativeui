@@ -1,3 +1,4 @@
+import type { AgentMode } from "@/app/page";
 import { STARTERS, type AccentName } from "./theme";
 import { SpinRing } from "./status-indicators";
 import { AccentPopover } from "./ControlTray";
@@ -11,6 +12,8 @@ interface IdleScreenProps {
   dark: boolean;
   onToggleDark: () => void;
   onAccentChange: (name: AccentName) => void;
+  mode: AgentMode;
+  onModeChange: (mode: AgentMode) => void;
 }
 
 export function IdleScreen({
@@ -20,6 +23,8 @@ export function IdleScreen({
   dark,
   onToggleDark,
   onAccentChange,
+  mode,
+  onModeChange,
 }: IdleScreenProps) {
   return (
     <div
@@ -239,9 +244,30 @@ export function IdleScreen({
         for voice inputs
       </p>
 
+      {/* Mode toggle */}
+      {!startPending && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-[calc(50%+310px)] flex items-center gap-1 p-1 rounded-full subtitle-entrance max-[840px]:top-[calc(50%+210px)] max-[540px]:top-[calc(50%+190px)]"
+          style={{ backgroundColor: "var(--t-surface)", border: "1px solid var(--t-ringBorder)" }}
+        >
+          {(["pipeline", "realtime"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => onModeChange(m)}
+              className="px-4 py-1.5 rounded-full text-[13px] font-medium tracking-[-0.01em] transition-all duration-200 cursor-pointer"
+              style={{
+                backgroundColor: mode === m ? "var(--t-accent)" : "transparent",
+                color: mode === m ? "var(--t-bg)" : "var(--t-textMuted)",
+              }}
+            >
+              {m === "realtime" ? "Realtime" : "STT→LLM→TTS"}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Starters */}
       {!startPending && (
-        <div className="absolute left-0 right-0 top-[calc(50%+300px)] flex flex-col items-center starters-entrance max-[840px]:top-[calc(50%+200px)] max-[540px]:top-[calc(50%+180px)]">
+        <div className="absolute left-0 right-0 top-[calc(50%+360px)] flex flex-col items-center starters-entrance max-[840px]:top-[calc(50%+260px)] max-[540px]:top-[calc(50%+235px)]">
           <span className={styles.startersLabel}>Try these</span>
           {STARTERS.map((s) => (
             <button key={s} className={styles.starterBtn} onClick={() => onStart(s)}>

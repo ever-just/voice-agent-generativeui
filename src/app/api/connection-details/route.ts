@@ -19,7 +19,7 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
 export const revalidate = 0;
 
-export async function POST() {
+export async function POST(request: Request) {
   if (!LIVEKIT_URL || !API_KEY || !API_SECRET) {
     return new NextResponse(
       "Missing LIVEKIT_URL, LIVEKIT_API_KEY, or LIVEKIT_API_SECRET",
@@ -27,13 +27,17 @@ export async function POST() {
     );
   }
 
+  const { searchParams } = new URL(request.url);
+  const mode = searchParams.get("mode") ?? "realtime";
+
   const participantName = "user";
   const participantIdentity = `user_${Math.floor(Math.random() * 10_000)}`;
   const roomName = `voice_genui_room_${Math.floor(Math.random() * 10_000)}`;
 
   const participantToken = await createParticipantToken(
     { identity: participantIdentity, name: participantName },
-    roomName
+    roomName,
+    mode,
   );
 
   const data: ConnectionDetails = {
@@ -50,7 +54,8 @@ export async function POST() {
 
 function createParticipantToken(
   userInfo: AccessTokenOptions,
-  roomName: string
+  roomName: string,
+  mode: string,
 ): Promise<string> {
   const at = new AccessToken(API_KEY, API_SECRET, {
     ...userInfo,
@@ -68,6 +73,7 @@ function createParticipantToken(
 
   at.roomConfig = new RoomConfiguration({
     agents: [{ agentName: "voice-genui-agent" }],
+    metadata: mode,
   });
 
   return at.toJwt();

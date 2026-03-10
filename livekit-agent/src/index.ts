@@ -6,38 +6,46 @@ import {
   inference,
   voice,
 } from "@livekit/agents";
+import * as openai from "@livekit/agents-plugin-openai";
 import * as silero from "@livekit/agents-plugin-silero";
 import { fileURLToPath } from "node:url";
-import { createVoiceAgent } from "./agent.js";
-import * as openai from "@livekit/agents-plugin-openai";
+import { type AgentMode, createVoiceAgent } from "./agent.js";
+
+async function createPipelineSession() {
+  const vad = await silero.VAD.load();
+  return new voice.AgentSession({
+    stt: new inference.STT({ model: "deepgram/nova-3", language: "multi" }),
+    llm: new inference.LLM({ model: "google/gemini-3-flash" }),
+    tts: new inference.TTS({ model: "inworld/inworld-tts-1", voice: "Ashley" }),
+    vad,
+    voiceOptions: {
+      allowInterruptions: true,
+      maxToolSteps: 10,
+      minInterruptionDuration: 0.5,
+      useTtsAlignedTranscript: true,
+    },
+  });
+}
+
+function createRealtimeSession() {
+  return new voice.AgentSession({
+    llm: new openai.realtime.RealtimeModel({
+      model: "gpt-realtime",
+      voice: "marin",
+    }),
+  });
+}
 
 export default defineAgent({
   entry: async (ctx: JobContext) => {
-    const vad = await silero.VAD.load();
-    const session = new voice.AgentSession({
-      stt: new inference.STT({ model: "deepgram/nova-3", language: "multi" }),
-      // llm: new openai.LLM({
-      //   baseURL: "https://api.thesys.dev/v1",
-      //   apiKey: process.env.THESYS_API_KEY,
-      //   model: "google/gemini-3-flash",
-      // }),
-      llm: new inference.LLM({
-        model: "google/gemini-3-flash",
-      }),
-      tts: new inference.TTS({
-        model: "inworld/inworld-tts-1",
-        voice: "Ashley",
-      }),
-      // turnDetection: new livekit.turnDetector.MultilingualModel(),
-      vad,
-      voiceOptions: {
-        allowInterruptions: true,
-        // preemptiveGeneration: true,
-        maxToolSteps: 10,
-        minInterruptionDuration: 0.5,
-        useTtsAlignedTranscript: true,
-      },
-    });
+    const roomMeta = ctx.job.room?.metadata ?? "";
+    const mode: AgentMode = roomMeta === "pipeline" ? "pipeline" : "realtime";
+    console.log(`[entry] Starting in ${mode} mode (metadata: "${roomMeta}")`);
+
+    const session =
+      mode === "pipeline"
+        ? await createPipelineSession()
+        : createRealtimeSession();
 
     session.on(voice.AgentSessionEventTypes.Error, (err: unknown) => {
       console.error("[session] Error:", err);
@@ -47,20 +55,13 @@ export default defineAgent({
       console.log("[session] Closed");
     });
 
-    // const usageCollector = new metrics.UsageCollector();
-    // session.on(voice.AgentSessionEventTypes.MetricsCollected, (ev) => {
-    //   metrics.logMetrics(ev.metrics);
-    //   usageCollector.collect(ev.metrics);
-    // });
-
-    // ctx.addShutdownCallback(async () => {
-    //   const summary = usageCollector.getSummary();
-    //   console.log(`Usage: ${JSON.stringify(summary)}`);
-    // });
-
     try {
       await session.start({
-        agent: createVoiceAgent(ctx.room, session),
+        agent: createVoiceAgent(
+          ctx.room,
+          mode,
+          mode === "pipeline" ? session : undefined,
+        ),
         room: ctx.room,
       });
     } catch (err) {

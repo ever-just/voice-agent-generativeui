@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   SessionProvider,
   useSession,
@@ -9,17 +9,23 @@ import {
 import { TokenSource } from "livekit-client";
 import { VoiceUI } from "@/lib/components/VoiceUI";
 
-/**
- * Minimal voice pipeline:
- *   1. Create a token source pointing at your connection endpoint
- *   2. Establish a session with useSession
- *   3. Wrap in SessionProvider so child components can access the room
- *   4. Render RoomAudioRenderer to play agent audio
- *   5. Render your UI (VoiceUI handles all interaction + GenUI display)
- */
+export type AgentMode = "realtime" | "pipeline";
+
 export default function VoicePage() {
+  const [mode, setMode] = useState<AgentMode>("pipeline");
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+
   const tokenSource = useMemo(
-    () => TokenSource.endpoint("/api/connection-details"),
+    () =>
+      TokenSource.custom(async () => {
+        const res = await fetch(
+          `/api/connection-details?mode=${modeRef.current}`,
+          { method: "POST" },
+        );
+        if (!res.ok) throw new Error(`Failed to get token: ${res.status}`);
+        return res.json();
+      }),
     [],
   );
   const session = useSession(tokenSource);
@@ -27,7 +33,7 @@ export default function VoicePage() {
   return (
     <SessionProvider session={session}>
       <RoomAudioRenderer />
-      <VoiceUI />
+      <VoiceUI mode={mode} onModeChange={setMode} />
     </SessionProvider>
   );
 }

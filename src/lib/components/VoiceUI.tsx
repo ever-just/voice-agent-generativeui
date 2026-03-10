@@ -6,6 +6,7 @@ import {
 } from "@livekit/components-react";
 import { ThemeProvider } from "@thesysai/genui-sdk";
 
+import type { AgentMode } from "@/app/page";
 import {
   createTheme,
   themeToVars,
@@ -20,7 +21,12 @@ import { DesktopControls, MobileControls, StatusPill } from "./ControlTray";
 import { TranscriptStrip } from "./TranscriptStrip";
 import styles from "./VoiceUI.module.css";
 
-export function VoiceUI() {
+interface VoiceUIProps {
+  mode: AgentMode;
+  onModeChange: (mode: AgentMode) => void;
+}
+
+export function VoiceUI({ mode, onModeChange }: VoiceUIProps) {
   const session = useSessionContext();
   const agent = useAgent();
   const isAgentReady = ACTIVE_AGENT_STATES.includes(agent.state);
@@ -190,6 +196,8 @@ export function VoiceUI() {
               dark={dark}
               onToggleDark={toggleTheme}
               onAccentChange={setAccentName}
+              mode={mode}
+              onModeChange={onModeChange}
             />
           ) : (
             <div className={styles.connected}>

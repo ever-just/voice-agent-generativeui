@@ -10,9 +10,10 @@
     "download-files": "node dist/index.js download-files"
   },
   "dependencies": {
-    "@livekit/agents": "^1.0.47",
-    "@livekit/agents-plugin-livekit": "^1.0.47",
-    "@livekit/agents-plugin-silero": "^1.0.47",
+    "@livekit/agents": "^1.0.49",
+    "@livekit/agents-plugin-livekit": "^1.0.49",
+    "@livekit/agents-plugin-openai": "^1.0.49",
+    "@livekit/agents-plugin-silero": "^1.0.49",
     "exa-js": "^2.4.0",
     "openai": "^6",
     "zod": "^3.25.76"
