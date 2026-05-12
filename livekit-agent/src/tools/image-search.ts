@@ -13,23 +13,21 @@ export const parameters = z.object({
     .describe("Number of images per query (default 5)"),
 });
 
-async function googleImageSearch(
+async function serperImageSearch(
   query: string,
   count: number,
 ): Promise<string[]> {
-  const params = new URLSearchParams({
-    key: process.env.GOOGLE_API_KEY ?? "",
-    cx: process.env.GOOGLE_CSE_ID ?? "",
-    searchType: "image",
-    q: query,
-    num: String(Math.min(count, 10)),
+  const res = await fetch("https://google.serper.dev/images", {
+    method: "POST",
+    headers: {
+      "X-API-KEY": process.env.SERPER_API_KEY ?? "",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ q: query, num: Math.min(count, 10) }),
   });
-  const res = await fetch(
-    `https://www.googleapis.com/customsearch/v1?${params}`,
-  );
-  if (!res.ok) throw new Error(`Google CSE error: ${res.status}`);
-  const data = (await res.json()) as { items?: { link: string }[] };
-  return (data.items ?? []).map((item) => item.link);
+  if (!res.ok) throw new Error(`Serper error: ${res.status}`);
+  const data = (await res.json()) as { images?: { imageUrl: string }[] };
+  return (data.images ?? []).map((item) => item.imageUrl);
 }
 
 export function createExecute() {
@@ -38,7 +36,7 @@ export function createExecute() {
     const results = await Promise.all(
       queries.map(async (query) => {
         try {
-          const urls = await googleImageSearch(query, n);
+          const urls = await serperImageSearch(query, n);
           const markdown = urls.map((url) => `![${query}](${url})`).join("\n");
           return `${query}:\n${markdown}`;
         } catch (err) {

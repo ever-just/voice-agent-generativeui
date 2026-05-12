@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   SessionProvider,
   useSession,
@@ -13,27 +13,31 @@ export type AgentMode = "realtime" | "pipeline";
 
 export default function VoicePage() {
   const [mode, setMode] = useState<AgentMode>("pipeline");
-  const modeRef = useRef(mode);
-  modeRef.current = mode;
 
+  return (
+    <ModeSession key={mode} mode={mode} onModeChange={setMode} />
+  );
+}
+
+function ModeSession({ mode, onModeChange }: { mode: AgentMode; onModeChange: (m: AgentMode) => void }) {
   const tokenSource = useMemo(
     () =>
       TokenSource.custom(async () => {
         const res = await fetch(
-          `/api/connection-details?mode=${modeRef.current}`,
+          `/api/connection-details?mode=${mode}`,
           { method: "POST" },
         );
         if (!res.ok) throw new Error(`Failed to get token: ${res.status}`);
         return res.json();
       }),
-    [],
+    [mode],
   );
   const session = useSession(tokenSource);
 
   return (
     <SessionProvider session={session}>
       <RoomAudioRenderer />
-      <VoiceUI mode={mode} onModeChange={setMode} />
+      <VoiceUI mode={mode} onModeChange={onModeChange} />
     </SessionProvider>
   );
 }
